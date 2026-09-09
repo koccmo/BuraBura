@@ -1,13 +1,16 @@
 package com.bura.game
 
-import com.bura.model.{Attack, Defense, WonTrick}
+import com.bura.model.{Attack, WonTrick}
 
 sealed trait Round
 
-case object Round {
+object Round {
 
   case object WaitingAttack extends Round
   case class WaitingDefense(attack: Attack) extends Round
-  case class Finished(trick: WonTrick) extends Round
+  case class DefenderWon(trick: WonTrick.Open) extends Round
+  case class AttackerWon(trick: WonTrick.Open) extends Round
+  case class AttackerWonHidden(openTrick: WonTrick.Open, hiddenTrick: WonTrick.Hidden) extends Round
+
 
 }

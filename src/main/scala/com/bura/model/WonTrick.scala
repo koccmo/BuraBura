@@ -1,24 +1,24 @@
 package com.bura.model
 
 sealed trait WonTrick {
-
-  def attack: Attack
-  def defense: Defense
-
-  lazy val cards: List[Card] = attack.cards ++ defense.cards
+  def count: Int
 }
 
 object WonTrick {
 
-  case class Open(attack: Attack, defense: Defense) extends WonTrick {
+  case class Open(cards: List[Card]) extends WonTrick {
 
     lazy val points: Int = cards.map(_.points).sum
+
+    override def count: Int = cards.size
   }
 
-  case class Hidden(attack: Attack, defense: Defense) extends WonTrick {
+  case class Hidden(defense: Defense) extends WonTrick {
 
-    def hiddenCount: Int = defense.cards.size
+    override val count: Int = defense.cards.size
 
-    def reveal: Open = Open(attack, Defense(defense.cards, Defense.Open))
+    def reveal: List[Card] = defense.cards
+
+    def revealPoints: Int = defense.cards.map(_.points).sum
   }
 }

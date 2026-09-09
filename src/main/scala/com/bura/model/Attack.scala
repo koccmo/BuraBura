@@ -15,4 +15,8 @@ case class Attack(cards: List[Card]) {
   def size: Int = cards.size
 
   def suit: Suit = cards.head.suit
+
+  def isValid: Boolean = cards.nonEmpty && cards.size <= 3 && cards.map(_.suit).distinct.size == 1
+
+  def points: Int = cards.map(_.points).sum
 }

@@ -13,6 +13,7 @@ case class Deck(cards: List[Card]) {
   }
 
   def draw(count: Int): (List[Card], Deck) = {
+    require(count >= 0, "Count cannot be negative")
     @tailrec
     def loop(deck: Deck, left: Int, cards: List[Card]): (List[Card], Deck) =
       if (left == 0) (cards.reverse, deck)
@@ -49,6 +50,5 @@ object Deck {
       } yield Card(rank, suit)
     )
 
-  def shuffled: Deck =
-    Deck(Random.shuffle(full.cards))
+  def shuffled: Deck = full.shuffle
 }

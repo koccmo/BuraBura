@@ -1,8 +1,19 @@
 package com.bura
 
+import com.bura.game.{GameEngine, GameFactory}
+import com.bura.ui.ConsoleUI
+
 object Main {
 
   def main(args: Array[String]): Unit = {
-    println("Bura Game Started!")
+
+    GameFactory.create() match {
+
+      case Left(error) => println(s"Cannot start game: $error")
+      case Right(initialState) => GameEngine.play(initialState) match {
+          case Left(error) => println(s"Game error: $error")
+          case Right(finishedGame) => ConsoleUI.showGameResult(finishedGame.result)
+        }
+    }
   }
 }

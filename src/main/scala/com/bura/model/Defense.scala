@@ -13,6 +13,8 @@ case class Defense(cards: List[Card], mode: Defense.Mode = Open) {
 
   def size: Int =
     cards.size
+
+  def points: Int = cards.map(_.points).sum
 }
 
 object Defense {

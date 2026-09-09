@@ -1,26 +1,22 @@
 package com.bura.model
 
 import com.bura.rules.{BuraRules, Rules}
+sealed trait Player {
 
-case class Player(
-  name: String,
-  hand: List[Card],
-  tricks: List[WonTrick.Open] = Nil,
-  hiddenTricks: List[WonTrick.Hidden] = Nil,
-  wins: Int = 0
-) {
+  def name: String
 
-  // Work with hand
-  def addCards(cards: List[Card]): Player =
-    copy(hand = hand ++ cards)
+  def hand: List[Card]
 
-  def removeCards(cards: List[Card]): Player = {
-    require(cards.forall(hand.contains), "Player does not have these cards")
-    copy(hand = hand.diff(cards))
-  }
+  def tricks: List[WonTrick.Open]
 
-  // Game
+  def hiddenTricks: List[WonTrick.Hidden]
 
+  // Hand operations
+  def addCards(cards: List[Card]): Player
+
+  def removeCards(cards: List[Card]): Player
+
+  // Game actions
   def playAttack(attack: Attack): Player =
     removeCards(attack.cards)
 
@@ -29,32 +25,78 @@ case class Player(
 
   // Tricks
 
-  def addTrick(trick: WonTrick.Open): Player =
-    copy(tricks = tricks :+ trick)
+  def addTrick(trick: WonTrick.Open): Player
 
-  def addHiddenTrick(hiddenTrick: WonTrick.Hidden): Player =
-    copy(hiddenTricks = hiddenTricks :+ hiddenTrick)
+  def addHiddenTrick(trick: WonTrick.Hidden): Player
 
-  // Info
+  // Score
 
-  lazy val trickPoints: Int = tricks.map(_.points).sum
+  lazy val trickPoints: Int =
+    tricks
+      .map(_.points)
+      .sum
 
+  lazy val totalPoints: Int =
+    trickPoints +
+      hiddenTricks
+        .flatMap(_.reveal)
+        .map(_.points)
+        .sum
 
-  def totalPoint: Int = {
-    val hidden = hiddenTricks.map(_.reveal.points).sum
+  // Helpers
+  def hasCards(cards: List[Card]): Boolean = cards.forall(hand.contains)
 
-    trickPoints + hidden
+  def needCards: Int = BuraRules.HandSize - hand.size
+
+}
+
+object Player {
+
+  // Human player
+  case class Human (name: String,
+                    hand: List[Card] = Nil,
+                    tricks: List[WonTrick.Open] = Nil,
+                    hiddenTricks: List[WonTrick.Hidden] = Nil) extends Player {
+
+    override def addCards(cards: List[Card]): Human =
+      copy(hand = hand ++ cards)
+
+    override def removeCards(cards: List[Card]): Human = {
+      require(cards.forall(hand.contains), "Player doesn't have these cards")
+      copy(hand = hand.diff(cards))}
+
+    override def addTrick(trick: WonTrick.Open): Human =
+      copy(tricks = tricks :+ trick)
+
+    override def addHiddenTrick(trick: WonTrick.Hidden): Human =
+      copy(hiddenTricks = hiddenTricks :+ trick)
+
   }
 
-  def hasCards(cards: List[Card]): Boolean =
-    cards.forall(hand.contains)
+  // Robot player
+  case class Robot(
+                    name: String,
+                    hand: List[Card] = Nil,
+                    tricks: List[WonTrick.Open] = Nil,
+                    hiddenTricks: List[WonTrick.Hidden] = Nil
+                  ) extends Player {
 
-  def canAttack: Boolean =
-    hand.nonEmpty
+    override def addCards(cards: List[Card]): Robot =
+      copy(hand = hand ++ cards)
 
-  def needCards: Int =
-    BuraRules.HandSize - hand.size
+    override def removeCards(cards: List[Card]): Robot = {
+      require(cards.forall(hand.contains), "Robot doesn't have these cards")
+      copy(hand = hand.diff(cards))
+    }
 
-  def addWins: Player =
-    copy(wins = wins + 1)
+    override def addTrick(trick: WonTrick.Open): Robot =
+      copy(tricks = tricks :+ trick)
+
+    override def addHiddenTrick(trick: WonTrick.Hidden): Robot =
+      copy(hiddenTricks = hiddenTricks :+ trick)
+
+  }
+
 }
+
+
